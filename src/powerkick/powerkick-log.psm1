@@ -1,12 +1,41 @@
-﻿function Get-Logger {
+﻿function Get-Log {
 	[CmdLetBinding()]
 	param(		
 		[Parameter(Position = 0, Mandatory = 0)]
-		[string] $loggerName = ((Get-PSCallStack)[1].Command)
+		[string] $loggerName = ((Get-PSCallStack)[0].Command)
 	)	
-	$object = New-Object object |
-		Add-Member 
+	New-Object psobject |
+		Add-Member -Name "Info" -MemberType ScriptMethod {
+			param([string] $message)
+			Log $message "Info" $this.Name			
+		} -PassThru |
+		Add-Member -Name "Debug" -MemberType ScriptMethod {
+			param([string] $message)
+			Log $message "Debug" $this.Name	-ForegroundColor DarkGray				
+		} -PassThru |		
+		Add-Member -Name "Warning" -MemberType ScriptMethod {
+			param([string] $message)
+			Log $message "Warning" $this.Name -ForegroundColor Yellow
+		} -PassThru |		
+		Add-Member -Name "Error" -MemberType ScriptMethod {
+			param([string] $message)
+			Log $message "Error" $this.Name	-ForegroundColor DarkRed		
+		} -PassThru |		
+		Add-Member -Name "Name" -MemberType NoteProperty -Value $loggerName -PassThru
 }
 
-Export-ModuleMember -Function Get-Logger
+function Log-ToFile {
+	param([string]$message)
+	$logFile = 'd:\Users\Piotr\dev\powershell\powerkick\src\log.txt'
+	Add-Content -Value $message -Path $logFile
+}
+
+function Log {
+	[CmdLetBinding()]
+	param([string]$message, [string]$severity, [string]$logger,[consolecolor]$ForegroundColor=(Get-Host).UI.RawUI.ForegroundColor)
+	Write-Host ("{0} - [{1}] - {2}" -f $severity, $logger, $message) -ForegroundColor $ForegroundColor
+	Log-ToFile ("{0} - $severity - [$logger] - {1}" -f (Get-Date),$message)		
+}
+
+Export-ModuleMember -Function Get-Log
 

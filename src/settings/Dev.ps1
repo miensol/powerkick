@@ -1,3 +1,4 @@
-$powerkick.settings = @{
-	"ReplicatorPath" = "c:\\apps\\replicator"
+$settings = @{
+	ReplicatorPath = "c:\\apps\\replicator";
+	WebAppPath = "?";
 }
