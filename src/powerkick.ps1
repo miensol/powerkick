@@ -16,8 +16,4 @@ $global:ErrorActionPreference = "Stop"
 	%{ Join-Path $scriptPath "powerkick\$_"} |
 	%{ Import-Module $_ }
 
-$currentDir = (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Set-Location $currentDir
-Set-NetLocation $currentDir 
-
-Invoke-powerkick $PlanFile $Environment -Roles $Roles
+Invoke-powerkick $PlanFile $Environment -Roles $Roles -ScriptPath $scriptPath

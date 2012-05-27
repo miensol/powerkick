@@ -95,6 +95,21 @@ function Invoke-DeploymentPlan {
 	}
 	Invoke-Roles
 }
+function Set-Environment([string]$ScriptPath){
+	$powerkick.originalEnvironment = @{
+		Location = (Get-Location);
+		ErrorActionPreference = $global:ErrorActionPreference;
+	}
+	$global:ErrorActionPreference = "Stop"
+	Set-Location $scriptPath
+	Set-NetLocation $scriptPath
+}
+function Restore-Environment {
+	$orignalEnvironment = $powerkick.originalEnvironment
+	Set-Location $orignalEnvironment.Location
+	Set-NetLocation $orignalEnvironment.Location
+	$global:ErrorActionPreference = $orignalEnvironment.ErrorActionPreference 
+}
 
 
 function Invoke-powerkick {
@@ -105,11 +120,14 @@ function Invoke-powerkick {
 		[Parameter(Position=1, Mandatory=1)]
 		[string]$Environment,
 		[Parameter(Position=2, Mandatory=1)]
-		[string[]]$Roles
+		[string[]]$Roles,
+		[Parameter(Position=3, Mandatory=1)]
+		[string]$ScriptPath
 	)
-	$log = (Get-Log)
-	$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)
 	try {
+		Set-Environment $ScriptPath
+		$log = (Get-Log)
+		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)	
 		$powerkick.settings = Get-Settings $Environment $settingsPath
 		$powerkick.serverMap = Get-ServerMap $Environment $settingsPath
 		$powerkick.settings.environment = $Environment	
@@ -119,6 +137,8 @@ function Invoke-powerkick {
 	}catch {
 		$log.Error("Deployment script ended abruptly, review log files to diagnose")		
 		$log.Error( (Resolve-Error $_) )
+	}finally{
+		Restore-Environment
 	}
 	
 }
