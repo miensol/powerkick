@@ -19,14 +19,17 @@
 		} -PassThru |		
 		Add-Member -Name "Error" -MemberType ScriptMethod {
 			param([string] $message)
-			Log $message "Error" $this.Name	-ForegroundColor DarkRed		
+			Log $message "Error" $this.Name	-ForegroundColor Red		
 		} -PassThru |		
 		Add-Member -Name "Name" -MemberType NoteProperty -Value $loggerName -PassThru
 }
 
 function Log-ToFile {
-	param([string]$message)
-	$logFile = 'd:\Users\Piotr\dev\powershell\powerkick\src\log.txt'
+	param([string]$message)	
+	$logFile = 'log.txt'
+	if(!(Test-Path $logFile -PathType Leaf)){
+		New-Item $logFile -ItemType file
+	}
 	Add-Content -Value $message -Path $logFile
 }
 

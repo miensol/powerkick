@@ -8,12 +8,10 @@ param(
 	[string]$PlanFile = $(Join-Path (Split-Path -Parent $MyInvocation.MyCommand.path) plan.ps1)
 )
 $scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.path)
-cls
-$global:ErrorActionPreference = "Stop"
-'[p]owerkick', '[p]owerkick-deploymentplan', '[p]owerkick-log' | 
-	%{ Remove-Module $_ }
-'powerkick-log.psm1', 'powerkick.psm1', 'powerkick-deploymentplan.psm1', 'powerkick-files.psm1' |
-	%{ Join-Path $scriptPath "powerkick\$_"} |
-	%{ Import-Module $_ }
+
+cls	
+Get-Item "$scriptPath\powerkick\*.psm1" | Where {(Get-Module -Name $_.BaseName)} | 
+	%{Remove-Module $_.BaseName}
+Get-Item "$scriptPath\powerkick\*.psm1" | %{Import-Module $_}	
 
 Invoke-powerkick $PlanFile $Environment -Roles $Roles -ScriptPath $scriptPath

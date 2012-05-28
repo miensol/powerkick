@@ -63,7 +63,7 @@ function Show-Settings {
 		if($value -eq '?'){
 			$value = "(Will prompt..)"
 		}
-		$log.Info(("{0}='{1}'" -f $_, $value))	
+		$log.Info(("{0}={1}" -f $_, $value))	
 	}
 	
 }
@@ -75,6 +75,17 @@ function Invoke-Roles {
 	}
 }
 
+function Initialize-RemainingSetts {
+	$log = (Get-Log)
+	$log.Debug("Will prompt for missing settings values")
+	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
+	$keys | %{				
+		while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
+			$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
+		}
+	} | Out-Null
+	$log.Debug("Done prompting for missing settings")
+}
 function Invoke-DeploymentPlan {
 	[CmdLetBinding()]
 	param([switch]$Confirm)
@@ -93,6 +104,7 @@ function Invoke-DeploymentPlan {
 			return;
 		}
 	}
+	Initialize-RemainingSetts
 	Invoke-Roles
 }
 function Set-Environment([string]$ScriptPath){
@@ -105,10 +117,12 @@ function Set-Environment([string]$ScriptPath){
 	Set-NetLocation $scriptPath
 }
 function Restore-Environment {
-	$orignalEnvironment = $powerkick.originalEnvironment
-	Set-Location $orignalEnvironment.Location
-	Set-NetLocation $orignalEnvironment.Location
-	$global:ErrorActionPreference = $orignalEnvironment.ErrorActionPreference 
+	if($powerkick.originalEnvironment){
+		$orignalEnvironment = $powerkick.originalEnvironment
+		Set-Location $orignalEnvironment.Location
+		Set-NetLocation $orignalEnvironment.Location
+		$global:ErrorActionPreference = $orignalEnvironment.ErrorActionPreference 
+	}	
 }
 
 
@@ -124,8 +138,8 @@ function Invoke-powerkick {
 		[Parameter(Position=3, Mandatory=1)]
 		[string]$ScriptPath
 	)
-	try {
-		Set-Environment $ScriptPath
+	try {		
+		Set-Environment $ScriptPath		
 		$log = (Get-Log)
 		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)	
 		$powerkick.settings = Get-Settings $Environment $settingsPath
@@ -133,8 +147,8 @@ function Invoke-powerkick {
 		$powerkick.settings.environment = $Environment	
 		Read-Plan $PlanFile		
 		Initialize-DeploymentPlan $Roles
-		Invoke-DeploymentPlan -Confirm	
-	}catch {
+		Invoke-DeploymentPlan 
+	}catch {	
 		$log.Error("Deployment script ended abruptly, review log files to diagnose")		
 		$log.Error( (Resolve-Error $_) )
 	}finally{

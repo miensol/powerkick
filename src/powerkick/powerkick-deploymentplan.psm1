@@ -30,11 +30,44 @@ function Initialize-DeploymentPlan([string[]]$Roles) {
 		}
 	}		
 }
+function Test-IsLocal([string]$Server){
+	($Server -eq "localhost") -or ($Server -eq $Env:COMPUTERNAME)
+}
+
+function Test-Administrator {  
+	$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )    
+    $currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Test-TargetServer([string]$ServerName){
+	if(-not(Test-Connection $ServerName -Quiet)){
+		"Could not connect to $ServerName with ICMP request"
+	}
+	if(-not(Test-IsLocal $ServerName)){
+		try {
+			$result = (Invoke-Command -ComputerName $ServerName { 
+				$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )    
+    			$currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator)
+			})			
+			if(!$result){
+				"You are not administrator on $ServerName"
+			}
+		}catch{
+			"Could not invoke remote command on $ServerName"
+		}
+	}else{
+		if(-not(Test-Administrator)){
+			"You are not administrator on $ServerName"
+		}
+	}		
+}
+
 function Show-DeploymentPlan {
 	$log = (Get-Log)
 	$log.Info("Will execute following deployment plan:")
 	$powerkick.deploymentPlan | % {				
 		$log.Info(("Deploy '{0}' to '{1}'" -f $_.role.Name,$_.server))
+		Test-TargetServer $_.server | %{ $log.Warning($_) }		
 	}
 }
 
