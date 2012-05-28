@@ -68,17 +68,13 @@ function Show-Settings {
 	
 }
 
-
-function Invoke-Roles {	
-	foreach($role in $powerkick.roles){		
-		. $role.ExecuteBlock
-	}
-}
-
 function Initialize-RemainingSettings {
-	$log = (Get-Log)
-	$log.Debug("Will prompt for missing settings values")
+	$log = (Get-Log)	
 	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
+	if(-not($keys)){
+		return
+	}
+	$log.Debug("Will prompt for missing settings values")
 	$keys | %{				
 		while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
 			$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
@@ -99,6 +95,62 @@ function Confirm-DeploymentShouldRun {
 	($continue -eq 'Y')						
 }
 
+function Write-DeploymentSteps($steps){
+	([string]::Join(", ", ($steps | %{ ("{0}->{1}" -f $_.role.Name,$_.server) })))
+}
+
+function Invoke-DeployRole {
+	[CmdLetBinding()]
+	param($Role, [string]$Server)	
+	. $Role.ExecuteBlock
+}
+
+function Invoke-RollbackRole {
+	[CmdLetBinding()]
+	param($Role, [string]$Server)	
+	. $Role.RollbackBlock
+}
+
+function Invoke-DeploymentRun {
+	$log = (Get-Log)
+	$deployedSteps = @()
+	$rollbackSteps = @()
+	try{
+		foreach($deployStep in (Get-DeploymentPlan)){
+			$log.Info(("Deploying {0} to {1}" -f $deployStep.role.Name,$deployStep.server))		
+			$deployedSteps += $deployStep		
+			
+			Invoke-DeployRole $deployStep.role $deployStep.server 
+			
+			$log.Info(("Successfully deployed {0} to {1}" -f $deployStep.role.Name,$deployStep.server))
+		}
+	}catch{
+		$log.Error(("Deployment of {0} to {1} ended with error" -f $deployStep.role.Name,$deployStep.server))
+		$log.Error((Resolve-Error $_))		
+		$rollbackSteps = $deployedSteps | Sort -Descending		
+	}		
+	if($rollbackSteps){
+		$log.Warning(("Will try to rollback following roles: {0}" -f (Write-DeploymentSteps $rollbackSteps)))
+		$errorSteps = @()
+		foreach($rollbackStep in $rollbackSteps){			
+			try {
+				$log.Info(("Rolling back {0} on {1}" -f $rollbackStep.role.Name, $rollbackStep.server))
+				Invoke-RollbackRole $rollbackStep.role $rollbackStep.server
+				$log.Info(("Done rolling back {0} on {1}" -f $rollbackStep.role.Name, $rollbackStep.server))
+			}catch {
+				$errorSteps += $rollbackStep
+				$log.Error(("Rollback of {0} on {1} ended with error" -f $rollbackStep.role.Name, $rollbackStep.server))
+				$log.Error( (Resolve-Error $_) )
+				$log.Warning("Will try to rollback remaining steps")
+			}
+		}
+		if($errorSteps){
+			throw ("Rollback failed for following roles: {0}" -f (Write-DeploymentSteps $errorSteps))						
+		}
+		$log.Warning("Successfuly rolled back")
+	}
+}
+
 function Invoke-DeploymentPlan {
 	[CmdLetBinding()]
 	param([switch]$Confirm)
@@ -110,7 +162,7 @@ function Invoke-DeploymentPlan {
 		return
 	}
 	Initialize-RemainingSettings
-	Invoke-Roles
+	Invoke-DeploymentRun	
 }
 function Set-Environment([string]$ScriptPath){
 	$powerkick.originalEnvironment = @{
@@ -152,7 +204,7 @@ function Invoke-powerkick {
 		$powerkick.settings.environment = $Environment	
 		Read-Plan $PlanFile		
 		Initialize-DeploymentPlan $Roles
-		Invoke-DeploymentPlan -Confirm
+		Invoke-DeploymentPlan
 	}catch {	
 		$log.Error("Deployment script ended abruptly, review log files to diagnose")		
 		$log.Error( (Resolve-Error $_) )

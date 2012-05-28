@@ -40,6 +40,7 @@ function Test-Administrator {
 }
 
 function Test-TargetServer([string]$ServerName){
+return
 	if(-not(Test-Connection $ServerName -Quiet)){
 		"Could not connect to $ServerName with ICMP request"
 	}
@@ -62,10 +63,14 @@ function Test-TargetServer([string]$ServerName){
 	}		
 }
 
+function Get-DeploymentPlan {
+	$powerkick.deploymentPlan
+}
+
 function Show-DeploymentPlan {
 	$log = (Get-Log)
 	$log.Info("Will execute following deployment plan:")
-	$powerkick.deploymentPlan | % {				
+	Get-DeploymentPlan | % {				
 		$log.Info(("Deploy '{0}' to '{1}'" -f $_.role.Name,$_.server))
 		Test-TargetServer $_.server | %{ $log.Warning($_) }		
 	}
@@ -89,15 +94,18 @@ function Role {
 		[Parameter(Position=0, Mandatory=1)]
 		[string]$Name,
 		[Parameter(Position=1, Mandatory=1)]
-		[scriptblock]$ScriptBlock = {}
+		[scriptblock]$Execute = {},
+		[Parameter(Position=2, Mandatory=0)]
+		[scriptblock]$Rollback = { throw "Rollback not implemented"  }
 	)	
 	if((Find-Role $Name)){
 		throw "There already is a Role with name $Name"
 	}
 	$powerkick.roles += @{
 		Name = $Name;
-		ExecuteBlock = $ScriptBlock;
+		ExecuteBlock = $Execute;
+		RollbackBlock = $Rollback;
 	}
 }
 
-Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan
+Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan, Get-DeploymentPlan
