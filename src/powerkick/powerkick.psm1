@@ -75,7 +75,7 @@ function Invoke-Roles {
 	}
 }
 
-function Initialize-RemainingSetts {
+function Initialize-RemainingSettings {
 	$log = (Get-Log)
 	$log.Debug("Will prompt for missing settings values")
 	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
@@ -86,25 +86,30 @@ function Initialize-RemainingSetts {
 	} | Out-Null
 	$log.Debug("Done prompting for missing settings")
 }
+
+function Confirm-DeploymentShouldRun {
+	[CmdLetBinding()]
+	param([switch]$Confirm)
+	if(-not $Confirm){
+		return $true
+	}
+	$continue = 'N'
+	do {$continue = (Read-Host "Review settings and deployment plan. Continue deployment [Y/N]:");}
+	while(-not($continue -match '[Y|N]'))	
+	($continue -eq 'Y')						
+}
+
 function Invoke-DeploymentPlan {
 	[CmdLetBinding()]
 	param([switch]$Confirm)
 	$log = (Get-Log)
 	Show-Settings
 	Show-DeploymentPlan
-	if($Confirm){
-		$continue = 'N'
-		do {
-			$continue = (Read-Host "Review settings and deployment plan. Continue deployment [Y/N]:");
-		}
-		while(-not($continue -match '[Y|N]'))
-		Write-Host $continue
-		if(-not($continue -eq 'Y')){
-			$log.Warning("Aborting run..")
-			return;
-		}
+	if(-not(Confirm-DeploymentShouldRun -Confirm:$Confirm)){
+		$log.Warning("Aborting deployment")
+		return
 	}
-	Initialize-RemainingSetts
+	Initialize-RemainingSettings
 	Invoke-Roles
 }
 function Set-Environment([string]$ScriptPath){
@@ -147,7 +152,7 @@ function Invoke-powerkick {
 		$powerkick.settings.environment = $Environment	
 		Read-Plan $PlanFile		
 		Initialize-DeploymentPlan $Roles
-		Invoke-DeploymentPlan 
+		Invoke-DeploymentPlan -Confirm
 	}catch {	
 		$log.Error("Deployment script ended abruptly, review log files to diagnose")		
 		$log.Error( (Resolve-Error $_) )
