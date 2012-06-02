@@ -1,4 +1,7 @@
-﻿function Read-Plan {
+﻿$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module "$local:path\powerkick-log.psm1"
+
+function Read-Plan {
 	param(
 		[Parameter(Position=0, Mandatory=1)]
 		[string]$planFile )
@@ -100,4 +103,4 @@ function Role {
 	}
 }
 
-Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan
+Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan, Test-IsLocal

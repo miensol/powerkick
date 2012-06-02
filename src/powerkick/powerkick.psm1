@@ -2,6 +2,10 @@
 	roles = @();
 	settings= @{};
 }
+$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module "$local:path\powerkick-deploymentplan.psm1"
+Import-Module "$local:path\powerkick-files.psm1"
+Import-Module "$local:path\powerkick-log.psm1"
 
 #borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
 function Resolve-Error($ErrorRecord = $Error[0]) {
