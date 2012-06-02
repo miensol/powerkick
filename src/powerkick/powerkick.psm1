@@ -79,7 +79,7 @@ function Invoke-Roles {
 	}
 }
 
-function Initialize-RemainingSetts {
+function Initialize-RemainingSettings {
 	$log = (Get-Log)
 	$log.Debug("Will prompt for missing settings values")
 	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
@@ -108,7 +108,7 @@ function Invoke-DeploymentPlan {
 			return;
 		}
 	}
-	Initialize-RemainingSetts
+	Initialize-RemainingSettings
 	Invoke-Roles
 }
 function Set-Environment([string]$ScriptPath){
