@@ -73,27 +73,30 @@ function Show-Settings {
 }
 
 
-function Invoke-Roles {	
-	foreach($role in $powerkick.roles){		
+function Invoke-Roles {			
+	foreach($role in $powerkick.roles){						
 		. $role.ExecuteBlock
-	}
+	}	
 }
 
 function Initialize-RemainingSettings {
-	$log = (Get-Log)
-	$log.Debug("Will prompt for missing settings values")
+	$log = (Get-Log)	
 	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
-	$keys | %{				
-		while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
-			$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
-		}
-	} | Out-Null
-	$log.Debug("Done prompting for missing settings")
+	if($keys){
+		$log.Debug("Prompting for missing settings values")
+		$keys | %{				
+			while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
+				$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
+			}
+		} | Out-Null
+		$log.Debug("Done prompting for missing settings")
+	}		
 }
 function Invoke-DeploymentPlan {
 	[CmdLetBinding()]
 	param([switch]$Confirm)
 	$log = (Get-Log)
+	Initialize-RemainingSettings
 	Show-Settings
 	Show-DeploymentPlan
 	if($Confirm){
@@ -107,8 +110,7 @@ function Invoke-DeploymentPlan {
 			$log.Warning("Aborting run..")
 			return;
 		}
-	}
-	Initialize-RemainingSettings
+	}	
 	Invoke-Roles
 }
 function Set-Environment([string]$ScriptPath){

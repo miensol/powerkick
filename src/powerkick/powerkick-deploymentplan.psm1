@@ -43,11 +43,14 @@ function Test-Administrator {
 }
 
 function Test-TargetServer([string]$ServerName){
-	if(-not(Test-Connection $ServerName -Quiet)){
+	if(-not(Test-Connection $ServerName -Quiet -Count 1)){
 		"Could not connect to $ServerName with ICMP request"
 	}
-	if(-not(Test-IsLocal $ServerName)){
+	if(-not(Test-IsLocal $ServerName)){		
 		try {
+			if(-not(Test-WSMan $ServerName)){
+				"Windows Remote Management is not enabled on $ServerName"
+			}
 			$result = (Invoke-Command -ComputerName $ServerName { 
 				$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )    
     			$currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -56,7 +59,7 @@ function Test-TargetServer([string]$ServerName){
 				"You are not administrator on $ServerName"
 			}
 		}catch{
-			"Could not invoke remote command on $ServerName"
+			"Could not invoke remote command on $ServerName this may indicate that Windows Remote Management is not enabled on $ServerName"
 		}
 	}else{
 		if(-not(Test-Administrator)){
