@@ -119,13 +119,13 @@ function Write-DeploymentSteps($steps){
 function Invoke-DeployRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)	
-	. $Role.ExecuteBlock
+	& $Role.ExecuteBlock -Settings $powerkick.settings	
 }
 
 function Invoke-RollbackRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)	
-	. $Role.RollbackBlock
+	& $Role.RollbackBlock -Settings $powerkick.settings	
 }
 
 function Invoke-DeploymentRun {
