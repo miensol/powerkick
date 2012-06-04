@@ -15,7 +15,6 @@ param(
 )
 $scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.path)
 
-cls	
 Get-Item "$scriptPath\powerkick\*.psm1" | Where {(Get-Module -Name $_.BaseName)} | 
 	%{Remove-Module $_.BaseName}
 Get-Item "$scriptPath\powerkick\*.psm1" | %{Import-Module $_}	
