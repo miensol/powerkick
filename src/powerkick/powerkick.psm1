@@ -1,7 +1,11 @@
-﻿$script:powerkick = @{
+$script:powerkick = @{
 	roles = @();
 	settings= @{};
 }
+$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module "$local:path\powerkick-deploymentplan.psm1"
+Import-Module "$local:path\powerkick-files.psm1"
+Import-Module "$local:path\powerkick-log.psm1"
 
 #borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
 function Resolve-Error($ErrorRecord = $Error[0]) {
@@ -71,16 +75,15 @@ function Show-Settings {
 function Initialize-RemainingSettings {
 	$log = (Get-Log)	
 	$keys = $powerkick.settings.keys | Where { ($powerkick.settings[$_] -eq '?') }
-	if(-not($keys)){
-		return
-	}
-	$log.Debug("Will prompt for missing settings values")
-	$keys | %{				
-		while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
-			$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
-		}
-	} | Out-Null
-	$log.Debug("Done prompting for missing settings")
+	if($keys){
+		$log.Debug("Prompting for missing settings values")
+		$keys | %{				
+			while(($powerkick.settings[$_] -eq '?') -or -not($powerkick.settings[$_])){
+				$powerkick.settings[$_] = Read-Host "Value for setting '$_'"
+			}
+		} | Out-Null
+		$log.Debug("Done prompting for missing settings")
+	}		
 }
 
 function Confirm-DeploymentShouldRun {
@@ -155,14 +158,14 @@ function Invoke-DeploymentPlan {
 	[CmdLetBinding()]
 	param([switch]$Confirm)
 	$log = (Get-Log)
+	Initialize-RemainingSettings
 	Show-Settings
 	Show-DeploymentPlan
 	if(-not(Confirm-DeploymentShouldRun -Confirm:$Confirm)){
 		$log.Warning("Aborting deployment")
 		return
-	}
-	Initialize-RemainingSettings
-	Invoke-DeploymentRun	
+	}	
+	Invoke-DeploymentRun
 }
 function Set-Environment([string]$ScriptPath){
 	$powerkick.originalEnvironment = @{
