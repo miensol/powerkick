@@ -1,7 +1,7 @@
 ﻿
 Role Replicator { 	
 	param($Settings)		
-	Copy-DirectoryContent 'input' -Destination 'output' -ClearDestination	
+	Copy-DirectoryContent 'input' -Destination $Settings.ReplicatorPath -ClearDestination	
 } -Rollback {
 	param($Settings)
 	Write-Host "Rolling back replicator"

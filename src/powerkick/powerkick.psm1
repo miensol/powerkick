@@ -3,38 +3,10 @@ $script:powerkick = @{
 	settings= @{};
 }
 $local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module "$local:path\powerkick-deploymentplan.psm1"
-Import-Module "$local:path\powerkick-files.psm1"
+Import-Module "$local:path\powerkick-helpers.psm1"
 Import-Module "$local:path\powerkick-log.psm1"
-
-#borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
-function Resolve-Error($ErrorRecord = $Error[0]) {
-    $error_message = "`nErrorRecord:{0}ErrorRecord.InvocationInfo:{1}Exception:{2}"
-    $formatted_errorRecord = $ErrorRecord | format-list * -force | out-string
-    $formatted_invocationInfo = $ErrorRecord.InvocationInfo | format-list * -force | out-string
-    $formatted_exception = ""
-    $Exception = $ErrorRecord.Exception
-    for ($i = 0; $Exception; $i++, ($Exception = $Exception.InnerException)) {
-        $formatted_exception += ("$i" * 70) + "`n"
-        $formatted_exception += $Exception | format-list * -force | out-string
-        $formatted_exception += "`n"
-    }
-
-    return $error_message -f $formatted_errorRecord, $formatted_invocationInfo, $formatted_exception
-}
-
-#borowed from https://github.com/psake/psake/blob/master/psake.psm1
-function Exec {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=1)][scriptblock]$cmd,
-        [Parameter(Position=1,Mandatory=0)][string]$errorMessage = ("command {0} returned failure status code" -f $cmd)
-    )
-    & $cmd
-    if ($lastexitcode -ne 0) {
-        throw ("Exec: " + $errorMessage)
-    }
-}
+Import-Module "$local:path\powerkick-files.psm1"
+Import-Module "$local:path\powerkick-deploymentplan.psm1"
 
 
 function Get-ServerMap {
@@ -115,16 +87,22 @@ function Confirm-DeploymentShouldRun {
 function Write-DeploymentSteps($steps){
 	([string]::Join(", ", ($steps | %{ ("{0}->{1}" -f $_.role.Name,$_.server) })))
 }
-
+function New-Context($Server){
+	@{
+		TargetServer = $Server
+	};
+}
 function Invoke-DeployRole {
 	[CmdLetBinding()]
-	param($Role, [string]$Server)	
+	param($Role, [string]$Server)		
+	$powerkick.context = (New-Context $Server)
 	& $Role.ExecuteBlock -Settings $powerkick.settings	
 }
 
 function Invoke-RollbackRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)	
+	$powerkick.context = (New-Context $Server)
 	& $Role.RollbackBlock -Settings $powerkick.settings	
 }
 
@@ -132,7 +110,7 @@ function Invoke-DeploymentRun {
 	$log = (Get-Log)
 	$deployedSteps = @()
 	$rollbackSteps = @()
-	try{
+	try{		
 		foreach($deployStep in (Get-DeploymentPlan)){
 			$log.Info(("Deploying {0} to {1}" -f $deployStep.role.Name,$deployStep.server))		
 			$deployedSteps += $deployStep		

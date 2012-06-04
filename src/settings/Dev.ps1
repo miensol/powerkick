@@ -1,4 +1,4 @@
 $settings = @{
-	ReplicatorPath = "c:\apps\replicator";
+	ReplicatorPath = "c:\temp\replicator\";
 	WebAppPath = "c:\apps\webapp";
 }

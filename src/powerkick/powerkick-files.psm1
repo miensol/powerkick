@@ -1,5 +1,6 @@
 ﻿$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Import-Module "$local:path\powerkick-deploymentplan.psm1"
+Import-Module "$local:path\powerkick-helpers.psm1"
 
 function Copy-DirectoryContent {
 	[CmdletBinding()]
@@ -14,6 +15,7 @@ function Copy-DirectoryContent {
 	$logger = (Get-Log)
 	$Path = (Get-FullPath $Path) 
 	$Path = "$Path\*"	
+	$Destination = (Convert-PathToPhysicalOnTargetServer $Destination)
 	if((Test-Path $Destination) -and -not(Test-Path -PathType Container -Path $Destination)){	
 		throw "The target of file copy operation '$Destination' is not a directory"
 	}
@@ -41,7 +43,10 @@ function Set-NetLocation([string]$Path){
 function Test-IsUncPath([string]$Path) {
 	$Path.StartsWith("\\")
 }
-
+function Convert-PathToPhysicalOnTargetServer([string]$Path){
+	Assert $powerkick.context.TargetServer "TargetServer is not set"
+	Convert-PathToPhysical $Path $powerkick.context.TargetServer
+}
 #ideas taken from https://github.com/chucknorris/dropkick/blob/master/product/dropkick/FileSystem/DotNetPath.cs
 function Convert-PathToPhysical {
 [CmdletBinding()]
