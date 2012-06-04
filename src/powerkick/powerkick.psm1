@@ -23,6 +23,20 @@ function Resolve-Error($ErrorRecord = $Error[0]) {
     return $error_message -f $formatted_errorRecord, $formatted_invocationInfo, $formatted_exception
 }
 
+#borowed from https://github.com/psake/psake/blob/master/psake.psm1
+function Exec {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=1)][scriptblock]$cmd,
+        [Parameter(Position=1,Mandatory=0)][string]$errorMessage = ("command {0} returned failure status code" -f $cmd)
+    )
+    & $cmd
+    if ($lastexitcode -ne 0) {
+        throw ("Exec: " + $errorMessage)
+    }
+}
+
+
 function Get-ServerMap {
 	param(
 		[string]$environment,
