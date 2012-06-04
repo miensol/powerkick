@@ -210,7 +210,9 @@ function Invoke-powerkick {
 		[Parameter(Position=4, Mandatory=1)]
 		[switch]$WhatIf = $false,
 		[Parameter(Position=5, Mandatory=1)]
-		[switch]$EnableTranscript = $false
+		[switch]$EnableTranscript = $false,
+		[Parameter(Position=6, Mandatory=0)]
+		[switch]$Confirm = $false
 	)
 	try {		
 		Set-Environment $ScriptPath $WhatIf	$EnableTranscript
@@ -221,7 +223,7 @@ function Invoke-powerkick {
 		$powerkick.settings.environment = $Environment	
 		Read-Plan $PlanFile		
 		Initialize-DeploymentPlan $Roles
-		Invoke-DeploymentPlan
+		Invoke-DeploymentPlan -Confirm:$Confirm
 	}catch {	
 		$log.Error("Deployment script ended abruptly, review log files to diagnose")		
 		$log.Error( (Resolve-Error $_) )
