@@ -28,9 +28,9 @@ function Log-ToFile {
 	param([string]$message)	
 	$logFile = 'log.txt'
 	if(!(Test-Path $logFile -PathType Leaf)){
-		New-Item $logFile -ItemType file
+		New-Item $logFile -ItemType file -WhatIf:$false
 	}
-	Add-Content -Value $message -Path $logFile
+	Add-Content -Value $message -Path $logFile -WhatIf:$false
 }
 
 function Log {

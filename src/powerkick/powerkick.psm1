@@ -167,21 +167,31 @@ function Invoke-DeploymentPlan {
 	}	
 	Invoke-DeploymentRun
 }
-function Set-Environment([string]$ScriptPath){
+function Set-Environment([string]$ScriptPath,[bool]$WhatIf=$false,[bool]$EnableTranscript=$false){	
 	$powerkick.originalEnvironment = @{
 		Location = (Get-Location);
 		ErrorActionPreference = $global:ErrorActionPreference;
-	}
-	$global:ErrorActionPreference = "Stop"
+		WhatIfPreference = $global:WhatIfPreference;				
+		TranscriptEnabled = $false
+	}	
+	$global:ErrorActionPreference = "Stop"	
 	Set-Location $scriptPath
 	Set-NetLocation $scriptPath
+	if($EnableTranscript -and(Start-Transcript "transcript.log.txt" -ErrorAction SilentlyContinue)){
+		$powerkick.originalEnvironment.TranscriptEnabled = $true
+	}
+	$global:WhatIfPreference = $WhatIf
 }
 function Restore-Environment {
 	if($powerkick.originalEnvironment){
 		$orignalEnvironment = $powerkick.originalEnvironment
+		$global:WhatIfPreference = $orignalEnvironment.WhatIfPreference
 		Set-Location $orignalEnvironment.Location
 		Set-NetLocation $orignalEnvironment.Location
-		$global:ErrorActionPreference = $orignalEnvironment.ErrorActionPreference 
+		$global:ErrorActionPreference = $orignalEnvironment.ErrorActionPreference 		
+		if($orignalEnvironment.TranscriptEnabled){
+			Stop-Transcript -ErrorAction SilentlyContinue
+		}
 	}	
 }
 
@@ -196,10 +206,14 @@ function Invoke-powerkick {
 		[Parameter(Position=2, Mandatory=1)]
 		[string[]]$Roles,
 		[Parameter(Position=3, Mandatory=1)]
-		[string]$ScriptPath
+		[string]$ScriptPath,
+		[Parameter(Position=4, Mandatory=1)]
+		[switch]$WhatIf = $false,
+		[Parameter(Position=5, Mandatory=1)]
+		[switch]$EnableTranscript = $false
 	)
 	try {		
-		Set-Environment $ScriptPath		
+		Set-Environment $ScriptPath $WhatIf	$EnableTranscript
 		$log = (Get-Log)
 		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)	
 		$powerkick.settings = Get-Settings $Environment $settingsPath

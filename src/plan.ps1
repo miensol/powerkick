@@ -9,4 +9,6 @@ Role Replicator {
 Role WebApp {
 	Write-Host "Deploying web app"
 	throw "Fancy error"
+} -Rollback {
+	Write-Host "Successfuly rolled back"
 }
