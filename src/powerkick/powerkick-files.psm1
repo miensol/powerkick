@@ -2,6 +2,32 @@
 Import-Module "$local:path\powerkick-deploymentplan.psm1"
 Import-Module "$local:path\powerkick-helpers.psm1"
 
+function Copy-File {
+	[CmdletBinding()]
+	param(
+		[Parameter(Position=0,Mandatory=1)]
+		[string]$Path,
+		[Parameter(Position=1,Mandatory=1)]
+		[string]$DestinationDirectory,
+		[Parameter(Position=2,Mandatory=0)]
+		[string]$RenameTo
+	)	
+	$logger = (Get-Log)
+	$Path = (Get-FullPath $Path)
+	$DestinationDirectory = (Convert-PathToPhysicalOnTargetServer $DestinationDirectory)
+	
+	Assert (Test-Path -PathType Container -Path $DestinationDirectory) "The target of file copy operation '$DestinationDirectory' is not a directory"
+	$Destination = $DestinationDirectory
+	if($RenameTo){
+		$Destination = (Join-Path $DestinationDirectory $RenameTo)		
+	}
+	$logger.Info("Copying file from $Path to $Destination")
+	Copy-Item $Path -Destination $Destination -Force -Recurse
+	$logger.Debug("Done copying file form $Path to $Destination")
+	
+	
+}
+
 function Copy-DirectoryContent {
 	[CmdletBinding()]
 	param(
@@ -11,14 +37,14 @@ function Copy-DirectoryContent {
 		[string]$Destination,
 		[Parameter(Position=2,Mandatory=0)]
 		[switch]$ClearDestination
-	)	
+	)		
 	$logger = (Get-Log)
-	$Path = (Get-FullPath $Path) 
-	$Path = "$Path\*"	
+	$Path = (Get-FullPath $Path).TrimEnd("\")
+	$Path = "$Path\*"		
 	$Destination = (Convert-PathToPhysicalOnTargetServer $Destination)
-	if((Test-Path $Destination) -and -not(Test-Path -PathType Container -Path $Destination)){	
-		throw "The target of file copy operation '$Destination' is not a directory"
-	}
+	
+	Assert (-not(Test-Path $Destination) -or (Test-Path -PathType Container -Path $Destination)) "The target of file copy operation '$Destination' is not a directory"
+	
 	if($ClearDestination -and (Test-Path $Destination)){
 		$logger.Info("Clearing destination directory $Destination")
 		Remove-Item "$Destination\*" -Recurse -Force
@@ -80,4 +106,4 @@ function Convert-PathToPhysical {
 	$resultPath
 }
 
-Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Convert-PathToPhysical
+Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Convert-PathToPhysical, Copy-File
