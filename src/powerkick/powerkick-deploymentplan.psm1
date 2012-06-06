@@ -33,9 +33,6 @@ function Initialize-DeploymentPlan([string[]]$Roles) {
 		}
 	}		
 }
-function Test-IsLocal([string]$Server){
-	($Server -eq "localhost") -or ($Server -eq $Env:COMPUTERNAME)
-}
 
 function Test-Administrator {  
 	$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )    
@@ -114,4 +111,4 @@ function Role {
 	}
 }
 
-Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan, Test-IsLocal, Get-DeploymentPlan
+Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan,  Get-DeploymentPlan

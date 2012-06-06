@@ -38,4 +38,28 @@ function Assert {
     }
 }
 
-Export-ModuleMember -Function Assert, Exec, Resolve-Error
+
+function Test-IsLocal([string]$Server){
+	($Server -eq "localhost") -or ($Server -eq $Env:COMPUTERNAME)
+}
+
+function Invoke-CommandOnTargetServer {
+	[CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=1)][scriptblock]$Command,
+        [Parameter(Position=1,Mandatory=0)]$ArgumentList
+    )
+	$log = (Get-Log)
+	Assert $powerkick.context.TargetServer "TargetServer is not set"
+	$targetServer = $powerkick.context.TargetServer 
+	if((Test-IsLocal $targetServer)){
+		$Command.Invoke($ArgumentList)
+	} else {
+		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, $ArgumentList )
+		$log.Info(("Invoking {0}" -f $logMessage))
+		Invoke-Command -ScriptBlock $Command -ComputerName $targetServer -ArgumentList $ArgumentList
+		$log.Debug(("Done invoking {0}" -f $logMessage))
+	}
+}
+
+Export-ModuleMember -Function Assert, Exec, Resolve-Error, Test-IsLocal, Invoke-CommandOnTargetServer
