@@ -92,6 +92,10 @@ function New-Context($Server){
 		TargetServer = $Server
 	};
 }
+function Get-ContextServer{
+	Assert $powerkick.context.TargetServer "TargetServer is not set"
+	$powerkick.context.TargetServer
+}
 function Invoke-DeployRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)		
@@ -226,6 +230,6 @@ function Invoke-powerkick {
 }
 
 
-Export-ModuleMember -Variable powerkick -Function Invoke-powerkick
+Export-ModuleMember -Variable powerkick -Function Invoke-powerkick, Get-ContextServer
 
 

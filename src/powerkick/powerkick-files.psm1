@@ -1,5 +1,5 @@
 ﻿$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module "$local:path\powerkick-deploymentplan.psm1"
+Import-Module "$local:path\powerkick-log.psm1"
 Import-Module "$local:path\powerkick-helpers.psm1"
 
 function Copy-File {
@@ -69,9 +69,8 @@ function Set-NetLocation([string]$Path){
 function Test-IsUncPath([string]$Path) {
 	$Path.StartsWith("\\")
 }
-function Convert-PathToPhysicalOnTargetServer([string]$Path){
-	Assert $powerkick.context.TargetServer "TargetServer is not set"
-	Convert-PathToPhysical $Path $powerkick.context.TargetServer
+function Convert-PathToPhysicalOnTargetServer([string]$Path){	
+	Convert-PathToPhysical $Path (Get-ContextServer)
 }
 #ideas taken from https://github.com/chucknorris/dropkick/blob/master/product/dropkick/FileSystem/DotNetPath.cs
 function Convert-PathToPhysical {

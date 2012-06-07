@@ -49,9 +49,8 @@ function Invoke-CommandOnTargetServer {
         [Parameter(Position=0,Mandatory=1)][scriptblock]$Command,
         [Parameter(Position=1,Mandatory=0)]$ArgumentList
     )
-	$log = (Get-Log)
-	Assert $powerkick.context.TargetServer "TargetServer is not set"
-	$targetServer = $powerkick.context.TargetServer 
+	$log = (Get-Log)	
+	$targetServer = (Get-ContextServer)
 	if((Test-IsLocal $targetServer)){
 		$Command.Invoke($ArgumentList)
 	} else {

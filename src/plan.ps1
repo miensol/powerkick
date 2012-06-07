@@ -1,16 +1,20 @@
 ﻿
 Role Replicator { 	
-	param($Settings)		
-	Copy-DirectoryContent 'input' -Destination $Settings.ReplicatorPath -ClearDestination	
-	Copy-File 'input\file1.txt' $Settings.ReplicatorPath -RenameTo 'renamed.txt'
-	Invoke-CommandOnTargetServer { 
-		param([string]$Server)
-		Test-Connection $Server -Count 1
-	} -ArgumentList 'wp.pl'
+	param($Settings)	
+	$source = 'd:\Users\Piotr\Dropbox\Sources\build\Replicator'
+	$binPath =  ("{0}\IHS.Auto.AutoInsight.Replicator.exe" -f $Settings.ReplicatorPath)
+	
+	Remove-ServiceOnTarget -BinPath $binPath 
+	
+	Copy-DirectoryContent $source -Destination $Settings.ReplicatorPath -ClearDestination			
+	
+	New-ServiceOnTarget $binPath -StartAfterCreating
+	
 } -Rollback {
 	param($Settings)
 	Write-Host "Rolling back replicator"
 }
+
 
 Role WebApp {
 	param($Settings)

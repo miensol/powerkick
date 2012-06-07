@@ -1,4 +1,4 @@
 $serverMap = @{
-	'Replicator' = @('Piotr-PM','piotr-win7-wm');
+	'Replicator' = @('piotr-win7-wm');
 	'WebApp' = @('localhost');
 }
