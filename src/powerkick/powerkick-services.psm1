@@ -21,16 +21,17 @@ function New-ServiceOnTarget {
 		[switch] $StartAfterCreating = $true
 	)	
 	$log = (Get-Log)
-	$targetServer = Get-ContextServer
-	$serviceExists = (Get-Service -ComputerName $targetServer -Name $ServiceName -ErrorAction SilentlyContinue)
-	Assert !$serviceExists "A service $ServiceName already exists on $targetServer"
+	Assert-ServiceNotExistsOnTarget $ServiceName
+	
 	$log.Info(("Creating new service {0}" -f $ServiceName))
 	
 	Invoke-CommandOnTargetServer {
 		param($BinPath, $ServiceName, $DisplayName, $Description, $StartupType)
 		New-Service -BinaryPathName $BinPath -Name $ServiceName -DisplayName $DisplayName -Description $Description -StartupType $StartupType
 	} -ArgumentList $BinPath, $ServiceName, $DisplayName, $Description, $StartupType
+	
 	$log.Debug(("Done creating new service {0}" -f $ServiceName))
+	
 	if($StartAfterCreating){
 		Start-ServiceOnTarget $ServiceName
 	}
@@ -99,9 +100,41 @@ function Stop-ServiceOnTarget {
 	}				
 }
 
+function New-TopshelfServiceOnTarget {
+	[CmdLetBinding()]
+	param(		
+		[Parameter(Position = 0, Mandatory = 1)]
+		[string] $BinPath,		
+		[Parameter(Position = 1, Mandatory = 0)]
+		[string] $ServiceName = (Convert-PathToFileNameWithoutExtension $BinPath),
+		[Parameter(Position = 2, Mandatory = 0)]
+		[switch] $StartAfterCreating = $true
+	)	
+	$log = (Get-Log)
+	Assert-ServiceNotExistsOnTarget $ServiceName
+	$log.Info(("Creating new Topshelf service {0}" -f $ServiceName))
+	
+	Invoke-CommandOnTargetServer {
+		param($BinPath)
+		& $BinPath install 
+	} -ArgumentList $BinPath
+	$log.Debug(("Done creating new Topshelf service {0}" -f $ServiceName))
+	if($StartAfterCreating){
+		Start-ServiceOnTarget $ServiceName
+	}
+}
+
+function Assert-ServiceNotExistsOnTarget([string]$ServiceName){
+	$targetServer = Get-ContextServer
+	$serviceExists = (Get-Service -ComputerName $targetServer -Name $ServiceName -ErrorAction SilentlyContinue)
+	Assert !$serviceExists "A service $ServiceName already exists on $targetServer"
+}
+
+
+
 function Convert-PathToFileNameWithoutExtension([string]$BinPath){
 	[System.IO.Path]::GetFileNameWithoutExtension((Split-Path -Leaf $BinPath))
 }
 
-Export-ModuleMember -Function New-ServiceOnTarget, Remove-ServiceOnTarget, Stop-ServiceOnTarget, Start-ServiceOnTarget
+Export-ModuleMember -Function New-ServiceOnTarget, Remove-ServiceOnTarget, Stop-ServiceOnTarget, Start-ServiceOnTarget, New-TopshelfServiceOnTarget
 

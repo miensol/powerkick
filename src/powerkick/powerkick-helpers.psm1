@@ -54,7 +54,7 @@ function Invoke-CommandOnTargetServer {
 	if((Test-IsLocal $targetServer)){
 		$Command.Invoke($ArgumentList)
 	} else {
-		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, $ArgumentList )
+		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
 		$log.Info(("Invoking {0}" -f $logMessage))
 		Invoke-Command -ScriptBlock $Command -ComputerName $targetServer -ArgumentList $ArgumentList
 		$log.Debug(("Done invoking {0}" -f $logMessage))

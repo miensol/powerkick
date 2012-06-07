@@ -15,6 +15,21 @@ Role Replicator {
 	Write-Host "Rolling back replicator"
 }
 
+Role Publisher {
+	param($Settings)
+	$source = 'd:\Users\Piotr\Dropbox\Sources\build\CsAiPublisher\'
+	$targetPath = Join-Path $Settings.PublisherPath "IHS.Auto.AutoInsight.CsAiPublisher.exe" 
+	
+	Remove-ServiceOnTarget -BinPath $targetPath 
+	
+	#Copy-DirectoryContent $source -Destination $Settings.PublisherPath -ClearDestination
+	
+	#New-TopshelfServiceOnTarget $targetPath -StartAfterCreating
+	
+} -Rollback {
+	Write-Host "Rolling back publisher"
+}
+
 
 Role WebApp {
 	param($Settings)
