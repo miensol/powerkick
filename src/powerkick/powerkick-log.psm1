@@ -1,9 +1,9 @@
-﻿function Get-Log {
-	[CmdLetBinding()]
-	param(		
-		[Parameter(Position = 0, Mandatory = 0)]
-		[string] $loggerName = ((Get-PSCallStack)[0].Command)
-	)	
+﻿function Get-Log {	
+	[string] $loggerName = ((Get-PSCallStack)[1].Command)	
+	if($loggerName -match '<position>'){
+		$loggerName = $Env:COMPUTERNAME
+	}
+	
 	New-Object psobject |
 		Add-Member -Name "Info" -MemberType ScriptMethod {
 			param([string] $message)

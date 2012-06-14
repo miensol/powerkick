@@ -22,9 +22,9 @@ Role Publisher {
 	
 	Remove-ServiceOnTarget -BinPath $targetPath 
 	
-	#Copy-DirectoryContent $source -Destination $Settings.PublisherPath -ClearDestination
+	Copy-DirectoryContent $source -Destination $Settings.PublisherPath -ClearDestination
 	
-	#New-TopshelfServiceOnTarget $targetPath -StartAfterCreating
+	New-TopshelfServiceOnTarget $targetPath -StartAfterCreating
 	
 } -Rollback {
 	Write-Host "Rolling back publisher"

@@ -26,7 +26,7 @@ function New-ServiceOnTarget {
 	$log.Info(("Creating new service {0}" -f $ServiceName))
 	
 	Invoke-CommandOnTargetServer {
-		param($BinPath, $ServiceName, $DisplayName, $Description, $StartupType)
+		param($BinPath, $ServiceName, $DisplayName, $Description, $StartupType)		
 		New-Service -BinaryPathName $BinPath -Name $ServiceName -DisplayName $DisplayName -Description $Description -StartupType $StartupType
 	} -ArgumentList $BinPath, $ServiceName, $DisplayName, $Description, $StartupType
 	
@@ -56,7 +56,7 @@ function Remove-ServiceOnTarget {
 	Invoke-CommandOnTargetServer { 
 		param($ServiceName)
 		(Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) | %{
-			C:\WINDOWS\system32\sc.exe delete $_.DisplayName
+			Exec { C:\WINDOWS\system32\sc.exe delete $_.DisplayName }
 		}
 	} -ArgumentList $ServiceName
 	$log.Debug(("Done removing service {0}" -f $ServiceName))

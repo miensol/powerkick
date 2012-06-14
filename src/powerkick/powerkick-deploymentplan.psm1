@@ -1,5 +1,6 @@
 $local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Import-Module "$local:path\powerkick-log.psm1"
+Import-Module "$local:path\powerkick-helpers.psm1"
 
 function Read-Plan {
 	param(
@@ -34,10 +35,6 @@ function Initialize-DeploymentPlan([string[]]$Roles) {
 	}		
 }
 
-function Test-Administrator {  
-	$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )    
-    $currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator)
-}
 
 function Test-TargetServer([string]$ServerName){
 
