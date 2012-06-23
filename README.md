@@ -1,6 +1,7 @@
 # Welcome to the powerkick project.
 
-powerkick is a deployment tool for building systematic deployment scripts
+powerkick is a deployment tool for building systematic deployment scripts.
+
 Ideas, names and even some functions come directly from **great project** [Dropkick](https://github.com/chucknorris/dropkick "Dropkick"). 
 
 ### Disclaimer
