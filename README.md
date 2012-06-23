@@ -4,7 +4,7 @@ powerkick is a deployment tool for building systematic deployment scripts
 Ideas, names and even some functions come directly from **great project** [Dropkick](https://github.com/chucknorris/dropkick "Dropkick"). 
 
 ### Disclaimer
-I'm not a powershell guru and am actually learning while writing.
+I'm not a powershell guru and am actually learning while writing - any hints and contributions are welcomed.
 Note that powerkick is in very early development stage...
 
 ## Concepts
