@@ -122,7 +122,7 @@ function Invoke-CommandOnTargetServer {
 		[scriptblock]$wrappedCommand = {
 			param($Params)			
 			$global:ErrorActionPreference = "Stop"	
-			$tempFolder = [System.IO.Path]::GetTempPath()						
+			$tempFolder = [System.IO.Path]::GetTempPath()									
 			$Params.ModulesToImport | %{ 								
 				$_.Content | Out-File (Join-Path $tempFolder $_.Name) -Force
 			}			
@@ -131,6 +131,7 @@ function Invoke-CommandOnTargetServer {
 				Import-Module (Join-Path $tempFolder $_.Name)
 			}	
 			Set-LogFileName $Params.LogFileName 
+			$log = (Get-Log)
 			$result = @{
 				LogFileName = (Get-LogFile);
 			};
