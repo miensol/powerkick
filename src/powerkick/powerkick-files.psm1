@@ -69,5 +69,12 @@ function Set-NetLocation([string]$Path){
 function Convert-PathToPhysicalOnTargetServer([string]$Path){	
 	Convert-PathToPhysical $Path (Get-ContextServer)
 }
+function Get-ContentOfFileOnTargetServer([string]$Path){
+	Get-Content (Convert-PathToPhysicalOnTargetServer $Path) 
+}
 
-Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Copy-File
+function Remove-FileOnTargetServer([string]$Path){
+	Remove-Item (Convert-PathToPhysicalOnTargetServer $Path) -Force -ErrorAction SilentlyContinue
+}
+
+Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Copy-File, Get-ContentOfFileOnTargetServer, Remove-FileOnTargetServer

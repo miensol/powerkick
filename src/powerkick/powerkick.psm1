@@ -32,17 +32,17 @@ function Get-Settings {
 		[Parameter(Mandatory=1)]
 		[string]$settingsPath
 	)
-	$log = Get-Log
+	$log = (Get-Log)
 	$settingsFile = Join-Path $settingsPath "$environment.ps1"			
 	$settings = $null
 	
 	$log.Debug("Reading settings file {0}" -f $settingsFile)	
-	. $settingsFile					
+	. $settingsFile 
 	
 	if(!$settings){		
 		throw "The settings file '$settingsFile' is malformed, settings variable is null"
 	}
-	return $settings
+	$settings
 }
 
 function Show-Settings {
@@ -123,12 +123,13 @@ function Invoke-DeploymentRun {
 	try{		
 		foreach($deployStep in (Get-DeploymentPlan)){
 			$log.Info(("Deploying {0} to {1}" -f $deployStep.role.Name,$deployStep.server))		
-			$deployedSteps += $deployStep		
-			
-			Invoke-DeployRole $deployStep.role $deployStep.server 
-			
-			$log.Info(("Successfully deployed {0} to {1}" -f $deployStep.role.Name,$deployStep.server))
+		
+			$deployedSteps += $deployStep					
+			Invoke-DeployRole $deployStep.role $deployStep.server 			
+			$log.Info(("Successfully deployed {0} to {1}" -f $deployStep.role.Name,$deployStep.server))			
 		}
+		
+		$log.Info("Successfully deployed all roles!")
 	}catch{
 		$log.Error(("Deployment of {0} to {1} ended with error" -f $deployStep.role.Name,$deployStep.server))
 		$log.Error((Resolve-Error $_))		
@@ -175,11 +176,13 @@ function Set-Environment([string]$ScriptPath,[bool]$WhatIf=$false,[bool]$EnableT
 		ErrorActionPreference = $global:ErrorActionPreference;
 		WhatIfPreference = $global:WhatIfPreference;				
 		TranscriptEnabled = $false
-	}	
+	}		
 	$global:ErrorActionPreference = "Stop"	
 	Set-Location $scriptPath
 	Set-NetLocation $scriptPath
-	if($EnableTranscript -and(Start-Transcript "transcript.log.txt" -ErrorAction SilentlyContinue)){
+	[void](New-Item -Path "$scriptPath\logs" -ItemType Directory -ErrorAction SilentlyContinue)
+	Set-LogFileNameFromCurrentTime "$scriptPath\logs"
+	if($EnableTranscript -and(Start-Transcript (Get-TranscriptLogFile) -ErrorAction SilentlyContinue)){
 		$powerkick.originalEnvironment.TranscriptEnabled = $true
 	}
 	$global:WhatIfPreference = $WhatIf
@@ -219,7 +222,7 @@ function Invoke-powerkick {
 	try {		
 		Set-Environment $ScriptPath $WhatIf	$EnableTranscript
 		$log = (Get-Log)
-		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)	
+		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)			
 		$powerkick.settings = Get-Settings $Environment $settingsPath
 		$powerkick.serverMap = Get-ServerMap $Environment $settingsPath
 		$powerkick.settings.environment = $Environment	
@@ -231,8 +234,7 @@ function Invoke-powerkick {
 		$log.Error( (Resolve-Error $_) )
 	}finally{
 		Restore-Environment
-	}
-	
+	}	
 }
 
 

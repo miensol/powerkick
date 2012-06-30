@@ -33,8 +33,12 @@ Role Publisher {
 
 Role WebApp {
 	param($Settings)
-	Write-Host "Deploying web app"
-	throw "Fancy error"
+	
+	Invoke-CommandOnTargetServer -Command {
+		$log = (Get-Log)
+		$log.Debug("Logging message on remote server") 
+	} 
+	
 } -Rollback {
 	param($Settings)
 	

@@ -1,3 +1,6 @@
+$local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module "$local:path\powerkick-log.psm1" | Out-Null
+
 #borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
 function Resolve-Error($ErrorRecord = $Error[0]) {
     $error_message = "`nErrorRecord:{0}ErrorRecord.InvocationInfo:{1}Exception:{2}"
@@ -114,6 +117,7 @@ function Invoke-CommandOnTargetServer {
 						Content = (Get-Content $_.Path);
 					};
 				};
+			LogFileName = (Split-Path -Leaf (Get-LogFile));
 		};		
 		[scriptblock]$wrappedCommand = {
 			param($Params)			
@@ -126,14 +130,31 @@ function Invoke-CommandOnTargetServer {
 			$Params.ModulesToImport | %{				
 				Import-Module (Join-Path $tempFolder $_.Name)
 			}	
-			$global:WhatIfPreference = $Params.WhatIf;
+			Set-LogFileName $Params.LogFileName 
+			$result = @{
+				LogFileName = (Get-LogFile);
+			};
+			$global:WhatIfPreference = $Params.WhatIf						
 			$blockToExecute = [scriptblock]::Create($Params.Command)												
-			return $blockToExecute.Invoke([array]$Params.ArgumentList)						
+			try{
+				$result.BlockResult = $blockToExecute.Invoke([array]$Params.ArgumentList)				 
+			}catch{
+				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
+				$result.Exception = $_
+			}
+			return $result
 		}
 		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
 		$log.Debug(("Invoking {0}" -f $logMessage))		
-		Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params
-		$log.Debug(("Done invoking {0}" -f $logMessage))
+		$remoteResult = Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params		
+		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName) 
+		$log.Debug(("Done invoking {0}" -f $logMessage))		
+		Remove-FileOnTargetServer $remoteResult.LogFileName 
+		if($remoteResult.Exception){
+			throw $remoteResult.Exception
+		}else{
+			return $remoteResult.BlockResult
+		}		
 	}
 }
 
