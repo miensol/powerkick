@@ -1,6 +1,6 @@
 ﻿$local:logFileNames = @{
 	logName = "$(pwd)\log.txt";
-	transcriptLogName = "$(pwd)\transcript-log.txt";
+	transcriptLogName = "$(pwd)\log-transcript.txt";
 };
 
 function Get-Log {	
