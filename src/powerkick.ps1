@@ -1,4 +1,5 @@
-﻿[CmdLetBinding()]
+﻿#requires -version 2
+[CmdLetBinding()]
 param(	
 	[Parameter(Position=0, Mandatory=0)]
 	[string]$Environment = 'Dev',
