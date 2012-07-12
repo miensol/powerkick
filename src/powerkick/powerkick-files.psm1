@@ -77,4 +77,4 @@ function Remove-FileOnTargetServer([string]$Path){
 	Remove-Item (Convert-PathToPhysicalOnTargetServer $Path) -Force -ErrorAction SilentlyContinue
 }
 
-Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Copy-File, Get-ContentOfFileOnTargetServer, Remove-FileOnTargetServer, Convert-PathToPhysical 
+Export-ModuleMember -Function Copy-DirectoryContent, Set-NetLocation, Copy-File, Get-ContentOfFileOnTargetServer, Remove-FileOnTargetServer, Convert-PathToPhysicalOnTargetServer
