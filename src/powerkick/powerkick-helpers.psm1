@@ -191,7 +191,6 @@ function Assert-NetFramework {
 		$Version = 	$Version + ".0"
 	}
 	$installedFrameworks = Get-Framework-Versions 
-	Write-Host $Version
 	$matchingFrameworks = $installedFrameworks   | Where { $_ -eq $Version} 
 	if (!$matchingFrameworks){
 		$message = (".net framework version $Version required (installed versions are {0})" -f [string]::Join(', ',$installedFrameworks))

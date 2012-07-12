@@ -1,5 +1,6 @@
-$src = (split-path -parent (Split-Path -Parent $MyInvocation.MyCommand.Path)) + "\src\powerkick"
-Import-Module "$src\powerkick-files.psm1" -Force | Out-Null		
+Get-ChildItem **\spec-helpers.ps1 | ForEach { . $_.FullName }
+
+Reload-PowerkickModule powerkick-files
 
 Describe "mapping local path to remote server" {	
 	It "should properly map absolute path" {		

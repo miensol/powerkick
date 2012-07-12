@@ -1,6 +1,6 @@
-$src = (split-path -parent (Split-Path -Parent $MyInvocation.MyCommand.Path)) + "\src\powerkick"
+Get-ChildItem **\spec-helpers.ps1 | ForEach { . $_.FullName }
 
-Import-Module "$src\powerkick-helpers.psm1" -Force
+Reload-PowerkickModule powerkick-helpers
 
 Describe 'Require specify .net version' {
 	

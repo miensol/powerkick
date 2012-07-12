@@ -1,7 +1,7 @@
-$src = (split-path -parent (Split-Path -Parent $MyInvocation.MyCommand.Path)) + "\src\powerkick"
+Get-ChildItem **\spec-helpers.ps1 | ForEach { . $_.FullName }
 
 function ReloadModule {
-	Import-Module "$src\powerkick-log.psm1" -Force | Out-Null		
+	Reload-PowerkickModule "powerkick-log"
 }
 
 Describe "getting log file" {	
