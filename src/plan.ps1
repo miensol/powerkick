@@ -1,8 +1,8 @@
 ﻿
 Role Replicator { 	
 	param($Settings)	
-	$source = 'd:\Users\Piotr\Dropbox\Sources\build\Replicator'
-	$binPath =  ("{0}\IHS.Auto.AutoInsight.Replicator.exe" -f $Settings.ReplicatorPath)
+	$source = 'build\Replicator'
+	$binPath =  ("{0}\Replicator.exe" -f $Settings.ReplicatorPath)
 	
 	Remove-ServiceOnTarget -BinPath $binPath 
 	
@@ -17,8 +17,8 @@ Role Replicator {
 
 Role Publisher {
 	param($Settings)
-	$source = 'd:\Users\Piotr\Dropbox\Sources\build\CsAiPublisher\'
-	$targetPath = Join-Path $Settings.PublisherPath "IHS.Auto.AutoInsight.CsAiPublisher.exe" 
+	$source = 'build\Publisher\'
+	$targetPath = Join-Path $Settings.PublisherPath "Publisher.exe" 
 	
 	Remove-ServiceOnTarget -BinPath $targetPath 
 	

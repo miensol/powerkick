@@ -56,8 +56,8 @@ function Test-TargetServer([string]$ServerName){
 		}catch{
 			"Could not invoke remote command on $ServerName this may indicate that Windows Remote Management is not enabled on $ServerName
 Execute following powershell script as an administrator on $ServerName to enable Windows Remote Managment:
- Get-Service winrm | Set-Service -StartupType Automatic -PassThru | Start-Service
-  Enable-PSRemoting -Force"
+Get-Service winrm | Set-Service -StartupType Automatic -PassThru | Start-Service
+Enable-PSRemoting -Force"
 		}
 	}else{
 		if(-not(Test-Administrator)){
