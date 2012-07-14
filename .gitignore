@@ -14,6 +14,6 @@ Desktop.ini
 
 ## temp files
 tmp
-
+deployment-logs
 ## nuget package files
 *.nupkg

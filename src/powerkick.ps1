@@ -12,10 +12,10 @@ param(
 	[Parameter(Position=4, Mandatory=0)]
 	[switch]$Confirm = $false,
 	[Parameter(Position=5, Mandatory=0)]
-	[string]$PlanFile = $(Join-Path (Split-Path -Parent $MyInvocation.MyCommand.path) plan.ps1)
+	[string]$PlanFile = $(Join-Path (pwd) plan.ps1)
 )
 $scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.path)
-
+$PlanFile = Resolve-Path $PlanFile
 Get-Item "$scriptPath\powerkick\*.psm1" | Where {(Get-Module -Name $_.BaseName)} | 
 	%{Remove-Module $_.BaseName}
 Get-Item "$scriptPath\powerkick\*.psm1" | %{Import-Module $_}	

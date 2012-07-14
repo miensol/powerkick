@@ -37,6 +37,7 @@ function Get-Settings {
 	$settings = $null
 	
 	$log.Debug("Reading settings file {0}" -f $settingsFile)	
+	Write-Warning (pwd)
 	. $settingsFile 
 	
 	if(!$settings){		
@@ -170,7 +171,7 @@ function Invoke-DeploymentPlan {
 	}	
 	Invoke-DeploymentRun
 }
-function Set-Environment([string]$ScriptPath,[bool]$WhatIf=$false,[bool]$EnableTranscript=$false){	
+function Set-Environment([string]$CurrentDir,[bool]$WhatIf=$false,[bool]$EnableTranscript=$false){	
 	$powerkick.originalEnvironment = @{
 		Location = (Get-Location);
 		ErrorActionPreference = $global:ErrorActionPreference;
@@ -178,10 +179,10 @@ function Set-Environment([string]$ScriptPath,[bool]$WhatIf=$false,[bool]$EnableT
 		TranscriptEnabled = $false
 	}		
 	$global:ErrorActionPreference = "Stop"	
-	Set-Location $scriptPath
-	Set-NetLocation $scriptPath
-	[void](New-Item -Path "$scriptPath\logs" -ItemType Directory -ErrorAction SilentlyContinue)
-	Set-LogFileNameFromCurrentTime "$scriptPath\logs"
+	Set-Location $CurrentDir
+	Set-NetLocation $CurrentDir
+	[void](New-Item -Path "$CurrentDir\deployment-logs" -ItemType Directory -ErrorAction SilentlyContinue)
+	Set-LogFileNameFromCurrentTime "$CurrentDir\deployment-logs"
 	if($EnableTranscript -and(Start-Transcript (Get-TranscriptLogFile) -ErrorAction SilentlyContinue)){
 		$powerkick.originalEnvironment.TranscriptEnabled = $true
 	}
@@ -220,9 +221,10 @@ function Invoke-powerkick {
 		[switch]$Confirm = $false
 	)
 	try {		
-		Set-Environment $ScriptPath $WhatIf	$EnableTranscript
+	    $currentDir = (Split-Path -Parent $PlanFile)
+		Set-Environment $currentDir $WhatIf	$EnableTranscript
 		$log = (Get-Log)
-		$settingsPath = (Join-Path (Split-Path -Parent $PlanFile) settings)			
+		$settingsPath = (Join-Path $currentDir settings)			
 		$powerkick.settings = Get-Settings $Environment $settingsPath
 		$powerkick.serverMap = Get-ServerMap $Environment $settingsPath
 		$powerkick.settings.environment = $Environment	
