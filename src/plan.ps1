@@ -36,8 +36,7 @@ Role WebApp {
 	
 	Invoke-CommandOnTargetServer -Command {
 		$log = (Get-Log)
-		$log.Debug("Logging message on remote server") 
-		throw "remote exception"
+		$log.Info("Hello from remote server") 		
 	} 
 	
 } -Rollback {
