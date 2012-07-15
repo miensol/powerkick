@@ -29,10 +29,10 @@ function Backup-SqlServerDatabase {
 	[CmdletBinding()]
     param(
         [Parameter(Position=0,Mandatory=1)][string]$Server,
-		[Parameter(Position=2,Mandatory=1)][string]$Database,
-		[Parameter(Position=3,Mandatory=1)][string]$BackupFile,
-		[Parameter(Position=4,Mandatory=0)][string]$Username,
-		[Parameter(Position=5,Mandatory=0)][string]$Password        
+		[Parameter(Position=1,Mandatory=1)][string]$Database,
+		[Parameter(Position=2,Mandatory=1)][string]$BackupFile,
+		[Parameter(Position=3,Mandatory=0)][string]$Username,
+		[Parameter(Position=4,Mandatory=0)][string]$Password        
     )
 	$log = (Get-Log)
 	$BackupFile = Get-FullPath $BackupFile
@@ -72,9 +72,30 @@ function Restore-SqlServerDatabase {
 	[CmdletBinding()]
     param(
         [Parameter(Position=0,Mandatory=1)][string]$Server,
-		[Parameter(Position=2,Mandatory=1)][string]$Database,
-		[Parameter(Position=3,Mandatory=1)][string]$BackupFile        
+		[Parameter(Position=1,Mandatory=1)][string]$Database,
+		[Parameter(Position=2,Mandatory=1)][string]$BackupFile,
+		[Parameter(Position=3,Mandatory=0)][string]$Username,
+		[Parameter(Position=4,Mandatory=0)][string]$Password        
     )
+	$log = (Get-Log)
+	$BackupFile = Get-FullPath $BackupFile
+	$log.Info("Restoring $Database from $BackupFile to $Server")
+	
+	Load-RequiredAssemblies
+	
+	$srv = Connect-ToServer $Server $Username $Password
+	$smoRestore = New-Object Microsoft.SqlServer.Management.Smo.Restore
+    $smoRestore.Database = $Database
+    $smoRestore.NoRecovery = $false;
+    $smoRestore.ReplaceDatabase = $true;
+    $smoRestore.Action = "Database"
+
+    # Create location to restore from
+    $backupDevice = New-Object Microsoft.SqlServer.Management.Smo.BackupDeviceItem($BackupFile, "File")
+    $smoRestore.Devices.Add($backupDevice)
+	
+	$smoRestore.SqlRestore($srv)
+	$log.Debug("Restored database")
 }
 
 Export-ModuleMember -Function Backup-SqlServerDatabase, Restore-SqlServerDatabase
