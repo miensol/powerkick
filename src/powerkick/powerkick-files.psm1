@@ -58,10 +58,6 @@ function Copy-DirectoryContent {
 	$logger.Debug("Done copying files form $Path to $Destination")
 }
 
-function Get-FullPath([string]$Path){
-	[IO.Path]::GetFullPath($Path)
-}
-
 function Set-NetLocation([string]$Path){
 	[IO.Directory]::SetCurrentDirectory($Path)
 }

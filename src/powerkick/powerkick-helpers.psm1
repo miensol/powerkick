@@ -1,5 +1,5 @@
 $local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module "$local:path\powerkick-log.psm1" | Out-Null
+Import-Module "$local:path\powerkick-log.psm1"
 
 #borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
 function Resolve-Error($ErrorRecord = $Error[0]) {
@@ -93,6 +93,9 @@ function Test-IsUncPath([string]$Path) {
 	$Path.StartsWith("\\")
 }
 
+function Get-FullPath([string]$Path){
+	[IO.Path]::GetFullPath($Path)
+}
 
 function Invoke-CommandOnTargetServer {
 	[CmdletBinding()]
@@ -166,4 +169,4 @@ function Test-Administrator {
 }
 
 
-Export-ModuleMember -Function Assert, Exec, Resolve-Error, Test-IsLocal, Invoke-CommandOnTargetServer, Convert-PathToPhysical, Test-Administrator
+Export-ModuleMember -Function Assert, Exec, Resolve-Error, Test-IsLocal, Invoke-CommandOnTargetServer, Convert-PathToPhysical, Test-Administrator, Get-FullPath
