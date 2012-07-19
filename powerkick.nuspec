@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>powerkick</id>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <authors>miensol</authors>
     <owners>miensol</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <projectUrl>https://github.com/miensol/powerkick</projectUrl>    
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple tool for building systematic deployment scripts</description>
-    <releaseNotes>Logging, remote server command and file mapping, settings file and server maps file and current directory handling</releaseNotes>
+    <releaseNotes>Added IIS module and one function to set file system access rights</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>powershell deployment</tags>
     <dependencies />
