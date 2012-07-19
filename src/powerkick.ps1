@@ -2,7 +2,7 @@
 [CmdLetBinding()]
 param(	
 	[Parameter(Position=0, Mandatory=0)]
-	[string]$Environment = 'Dev',
+	[string]$Environment = 'Local',
 	[Parameter(Position=1, Mandatory=0)]
 	[string[]]$Roles = @('All'),
 	[Parameter(Position=2, Mandatory=0)]
