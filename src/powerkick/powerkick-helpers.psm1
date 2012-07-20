@@ -131,14 +131,10 @@ function Invoke-CommandOnTargetServer {
 				$_.Content | Out-File (Join-Path $tempFolder $_.Name) -Force
 			}			
 			Set-ExecutionPolicy Unrestricted -Scope Process
-			$Params.ModulesToImport | %{				
-				Import-Module (Join-Path $tempFolder $_.Name)
-			}	
+			$Params.ModulesToImport | %{ Import-Module (Join-Path $tempFolder $_.Name) }	
 			Set-LogFileName $Params.LogFileName 
 			$log = (Get-Log)
-			$result = @{
-				LogFileName = (Get-LogFile);
-			};
+			$result = @{ LogFileName = (Get-LogFile);};
 			$global:WhatIfPreference = $Params.WhatIf						
 			$blockToExecute = [scriptblock]::Create($Params.Command)												
 			try{
@@ -148,13 +144,19 @@ function Invoke-CommandOnTargetServer {
 			}catch{
 				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
 				$result.Exception = $_
+				$Params.ModulesToImport | %{				
+					Remove-Module $_.Name.Replace(".psm1","") -ErrorAction SilentlyContinue
+					$_
+				} | %{
+					Remove-Item (Join-Path $tempFolder $_.Name) -Force -ErrorAction SilentlyContinue
+				}	
 			}
 			return $result
 		}
 		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
 		$log.Debug(("Invoking {0}" -f $logMessage))		
 		$remoteResult = Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params		
-		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName) -ErrorAction SilentlyContinue
+		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName -ErrorAction SilentlyContinue) -ErrorAction SilentlyContinue
 		$log.Debug(("Done invoking {0}" -f $logMessage))		
 		Remove-FileOnTargetServer $remoteResult.LogFileName 
 		if($remoteResult.Exception){
