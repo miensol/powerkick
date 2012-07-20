@@ -99,7 +99,7 @@ function Role {
 		[Parameter(Position=1, Mandatory=1)]
 		[scriptblock]$Execute = {},
 		[Parameter(Position=2, Mandatory=0)]
-		[scriptblock]$Rollback = { throw "Rollback not implemented"  }
+		[scriptblock]$Rollback = { (Get-Log).Error("Rollback not implemented")  }
 	)	
 	if((Find-Role $Name)){
 		throw "There already is a Role with name $Name"

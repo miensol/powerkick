@@ -10,10 +10,7 @@ Role Replicator {
 	
 	New-ServiceOnTarget $binPath -StartAfterCreating
 	
-} -Rollback {
-	param($Settings)
-	Write-Host "Rolling back replicator"
-}
+} 
 
 Role Publisher {
 	param($Settings)
@@ -26,9 +23,7 @@ Role Publisher {
 	
 	New-TopshelfServiceOnTarget $targetPath -StartAfterCreating
 	
-} -Rollback {
-	Write-Host "Rolling back publisher"
-}
+} 
 
 
 Role WebApp {
