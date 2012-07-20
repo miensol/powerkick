@@ -111,4 +111,14 @@ function Role {
 	}
 }
 
-Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan,  Get-DeploymentPlan
+function Helpers {
+	[CmdLetBinding()]
+	param(
+		[Parameter(Position=0, Mandatory=1)]
+		[scriptblock]$HelpersDefinition
+	)
+	$powerkick.helpers = $HelpersDefinition
+}
+
+
+Export-ModuleMember -Function Role, Initialize-DeploymentPlan, Show-DeploymentPlan, Read-Plan,  Get-DeploymentPlan, Helpers

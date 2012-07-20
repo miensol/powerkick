@@ -1,6 +1,7 @@
 $script:powerkick = @{
 	roles = @();
 	settings= @{};
+	helpers= [scriptblock]{};
 }
 $local:path = (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Import-Module "$local:path\powerkick-helpers.psm1"
@@ -107,6 +108,7 @@ function Invoke-DeployRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)		
 	$powerkick.context = (New-Context $Server)
+	. $powerkick.helpers
 	& $Role.ExecuteBlock -Settings $powerkick.settings	
 }
 
