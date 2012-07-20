@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>powerkick</id>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <authors>miensol</authors>
     <owners>miensol</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <projectUrl>https://github.com/miensol/powerkick</projectUrl>    
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple tool for building systematic deployment scripts</description>
-    <releaseNotes>Ability to define helpers functions inside plan</releaseNotes>
+    <releaseNotes>Ability to define helpers functions inside plan with remote invocation</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>powershell deployment</tags>
     <dependencies />
