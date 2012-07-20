@@ -116,6 +116,7 @@ function Invoke-RollbackRole {
 	[CmdLetBinding()]
 	param($Role, [string]$Server)	
 	$powerkick.context = (New-Context $Server)
+	. $powerkick.helpers
 	& $Role.RollbackBlock -Settings $powerkick.settings	
 }
 

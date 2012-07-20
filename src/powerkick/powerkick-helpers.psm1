@@ -111,7 +111,7 @@ function Invoke-CommandOnTargetServer {
 		$Params = @{
 			ArgumentList = $ArgumentList;
 			Command = $Command;
-			WhatIf = $global:WhatIfPreference;
+			WhatIf = $global:WhatIfPreference;			
 			ModulesToImport = Get-Module | 
 				Where { $_.Name -match 'powerkick-'} |
 				%{ 
@@ -121,6 +121,7 @@ function Invoke-CommandOnTargetServer {
 					};
 				};
 			LogFileName = (Split-Path -Leaf (Get-LogFile));
+			Helpers = $powerkick.helpers;
 		};		
 		[scriptblock]$wrappedCommand = {
 			param($Params)			
@@ -141,6 +142,7 @@ function Invoke-CommandOnTargetServer {
 			$global:WhatIfPreference = $Params.WhatIf						
 			$blockToExecute = [scriptblock]::Create($Params.Command)												
 			try{
+				. $Params.Helpers
 				$result.BlockResult = $blockToExecute.Invoke([array]$Params.ArgumentList)				 
 			}catch{
 				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
