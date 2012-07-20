@@ -59,6 +59,47 @@ function Initialize-Website {
 			$_
 		}
 }
+function Stop-WebSiteAndAppPool {
+	[CmdLetBinding()]
+	param(
+		[Parameter(Position=0, Mandatory=1)]
+		[string]$Name
+	)	
+	Import-Module WebAdministration 
+	$log = (Get-Log)	
+	Get-ChildItem iis:\sites | Where { $_.Name -eq $Name} |
+		ForEach { 
+			$log.Info("Stopping web site $Name")
+			$_ | Stop-WebSite			
+		}
+	Get-ChildItem iis:\apppools | Where { ($_.Name -eq $Name) -and ($_.State -eq "Started")} |
+		ForEach { 
+			$log.Info("Stopping app pool $Name")
+			$_ | Stop-WebAppPool			
+		}
+}
+
+function Start-WebSiteAndAppPool {
+	[CmdLetBinding()]
+	param(
+		[Parameter(Position=0, Mandatory=1)]
+		[string]$Name
+	)	
+	Import-Module WebAdministration 
+	$log = (Get-Log)	
+
+	Get-ChildItem iis:\apppools | Where { ($_.Name -eq $Name) -and ($_.State -eq "Stopped")} |
+		ForEach { 
+			$log.Info("Starting app pool $Name")
+			$_ | Start-WebAppPool			
+		}
+
+	Get-ChildItem iis:\sites | Where { $_.Name -eq $Name} |
+		ForEach { 
+			$log.Info("Starting web site $Name")
+			$_ | Start-WebSite			
+		}
+}
 # TODO: move this to files module and add logging
 function Set-AccessRights {
 	[CmdLetBinding()]
@@ -86,5 +127,5 @@ function Set-AccessRights {
 	Set-ACL $Path $objACL
 }
 
-Export-ModuleMember -Function Initialize-Website, Initialize-WebAppPool, Set-AccessRights
+Export-ModuleMember -Function Initialize-Website, Initialize-WebAppPool, Set-AccessRights, Start-WebSiteAndAppPool, Stop-WebSiteAndAppPool
 

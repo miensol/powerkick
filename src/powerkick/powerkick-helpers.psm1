@@ -135,6 +135,7 @@ function Invoke-CommandOnTargetServer {
 			Set-LogFileName $Params.LogFileName 
 			$log = (Get-Log)
 			$result = @{ LogFileName = (Get-LogFile);};
+			$log.Info("Entered remote machine $env:COMPUTERNAME")
 			$global:WhatIfPreference = $Params.WhatIf						
 			$blockToExecute = [scriptblock]::Create($Params.Command)												
 			try{
@@ -143,27 +144,31 @@ function Invoke-CommandOnTargetServer {
 				$result.BlockResult = $blockToExecute.Invoke([array]$Params.ArgumentList)				 
 			}catch{
 				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
-				$result.Exception = $_
-				$Params.ModulesToImport | %{				
-					Remove-Module $_.Name.Replace(".psm1","") -ErrorAction SilentlyContinue
-					$_
-				} | %{
-					Remove-Item (Join-Path $tempFolder $_.Name) -Force -ErrorAction SilentlyContinue
-				}	
+				$result.Exception = $_				
 			}
 			return $result
 		}
 		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
-		$log.Debug(("Invoking {0}" -f $logMessage))		
+		$log.Debug("Invoking $logMessage")		
 		$remoteResult = Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params		
-		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName -ErrorAction SilentlyContinue) -ErrorAction SilentlyContinue
-		$log.Debug(("Done invoking {0}" -f $logMessage))		
+		
+		Add-RemoteLogToLocalSafely $remoteResult.LogFileName
+		
+		$log.Debug(("Done invoking  $logMessage"))		
 		Remove-FileOnTargetServer $remoteResult.LogFileName 
 		if($remoteResult.Exception){
 			throw $remoteResult.Exception
 		}else{
 			return $remoteResult.BlockResult
 		}		
+	}
+}
+
+function Add-RemoteLogToLocalSafely($localLogName) {
+	try {
+		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $localLogName)
+	}catch {
+		(Get-Log).Warning("Failed while retreiving log file")
 	}
 }
 
