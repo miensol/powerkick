@@ -142,7 +142,8 @@ function Invoke-CommandOnTargetServer {
 			$global:WhatIfPreference = $Params.WhatIf						
 			$blockToExecute = [scriptblock]::Create($Params.Command)												
 			try{
-				. $Params.Helpers
+				[scriptblock]$helpers = [scriptblock]::Create($Params.Helpers)
+				. $helpers
 				$result.BlockResult = $blockToExecute.Invoke([array]$Params.ArgumentList)				 
 			}catch{
 				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
@@ -153,7 +154,7 @@ function Invoke-CommandOnTargetServer {
 		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
 		$log.Debug(("Invoking {0}" -f $logMessage))		
 		$remoteResult = Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params		
-		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName) 
+		Add-ContentToLogFile (Get-ContentOfFileOnTargetServer $remoteResult.LogFileName) -ErrorAction SilentlyContinue
 		$log.Debug(("Done invoking {0}" -f $logMessage))		
 		Remove-FileOnTargetServer $remoteResult.LogFileName 
 		if($remoteResult.Exception){

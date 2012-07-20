@@ -38,7 +38,7 @@ function Get-Settings {
 	$settings = $null
 	
 	$log.Debug("Reading settings file {0}" -f $settingsFile)	
-	Write-Warning (pwd)
+	
 	. $settingsFile 
 	
 	if(!$settings){		
