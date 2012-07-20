@@ -82,6 +82,7 @@ function Set-AccessRights {
 
 	$objACL = Get-ACL $Path 
 	$objACL.AddAccessRule($objACE) 
+	(Get-Log).Info("Adding $Rights for $Path to $User");
 	Set-ACL $Path $objACL
 }
 
