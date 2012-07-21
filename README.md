@@ -52,4 +52,44 @@ $serverMap = @{
   HyperService = @('service-machine-one', 'service-machine-two')
 };
 ```
+The `plan.ps1` file is an actuall script that will deploy our components to target machines using powershell:
+```powershell
+
+Role SuperWebApp {
+  param($Settings)
+  
+  Invoke-CommandOnTargetServer {
+    param($Name)
+    Stop-WebSiteAndAppPool $Name
+  } -ArgumentList 'SuperWebApp'
+
+  Copy-DirectoryContent ".\SuperWebApp" -Destination $Settings.SuperWebAppPath -ClearDestination
+	
+	Invoke-CommandOnTargetServer {
+	  param($Settings)
+		
+    Initialize-WebAppPool 'SuperWebApp' 'v4.0'
+				
+		Initialize-Website 'SuperWebApp' -AppPool 'SuperWebApp' -PhysicalPath $Settings.SuperWebAppPath 		
+						
+			
+    Set-AccessRights $Settings.SuperWebAppPath `
+      -User "IIS AppPool\SuperWebApp" `
+      -Rights "Read, ReadAndExecute, ListDirectory" `
+      -AccessType 'Allow' `
+      -Inheritance 'ContainerInherit' `
+      -Propagation 'InheritOnly'
+
+			Start-WebSiteAndAppPool 'SuperWebApp'
+		 -ArgumentList $Settings							
+  }
+}
+
+Role HyperService {
+  param($Settings)
+  
+  
+}
+
+```
 
