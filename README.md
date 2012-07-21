@@ -16,3 +16,40 @@ The basic idea behing this little gem is to add some structure to deployment scr
 * **settings** - there is **only one** deployment plan that gets executed in all environments. We should try hard to make all our environments as equal as possible but some changes, like folder structure, are probably inevitable. That's why for each *Environment* there has to be a file under *settings* directory named *Environment.ps1* with configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 * **ServerMap** - a single *Role*, for example a web application, can be deployed to one or many machines in one *Environment*. The mapping from *Role* to target machines is specified for each *Environment* in file named *Environment-ServerMap.ps1*                                                                   
 
+## Sample
+Let's say we want to deploy a web application to iis and install a windows service. To make things more interesting we'll asume that both of them have to be load balanced - so we want them installed on several machines at the same time.
+
+Here's our folder structure:
+```
+SuperWebApp\
+  bin\
+  Content\
+  Web.config
+HyperService\
+  Dependency.dll
+  Service.exe
+powerkick\
+settings\
+  QA.ps1
+  QA-ServerMap.ps1
+powerkick.ps1
+plan.ps1
+```
+
+The `QA.ps1` file contains settings that will be used during deployment to QA:
+```powershell
+$settings = @{
+  SuperWebAppPath = 'c:\apps\SuperWebApp'
+  HyperServicePath = 'c:\apps\HyperService'
+  HyperServiceUser = 'domain\username'
+  HyperServicePassword = '?'  
+};
+```
+The `QA-ServerMap.ps1` file contains mapping of Roles to machines they will get deployed to:
+```powershell
+$serverMap = @{
+  SuperWebApp = @('web-farm-machine-one', 'web-farm-machine-two')
+  HyperService = @('service-machine-one', 'service-machine-two')
+};
+```
+
