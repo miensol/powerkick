@@ -41,8 +41,6 @@ The `QA.ps1` file contains settings that will be used during deployment to QA:
 $settings = @{
   SuperWebAppPath = 'c:\apps\SuperWebApp'
   HyperServicePath = 'c:\apps\HyperService'
-  HyperServiceUser = 'domain\username'
-  HyperServicePassword = '?'  
 };
 ```
 The `QA-ServerMap.ps1` file contains mapping of Roles to machines they will get deployed to:
@@ -52,6 +50,8 @@ $serverMap = @{
   HyperService = @('service-machine-one', 'service-machine-two')
 };
 ```
+As ServerMap indicates the `SuperWebApp` will be deployed to 'web-farm-machine-one' and 'web-farm-machine-two' machines and `HyperService` to 'service-machine-one' and 'service-machine-two'.
+
 The `plan.ps1` file is an actuall script that will deploy our components to target machines using powershell:
 ```powershell
 
@@ -60,17 +60,21 @@ Role SuperWebApp {
   
   Invoke-CommandOnTargetServer {
     param($Name)
+    
+    Write-NiceMessageToLog
+  
     Stop-WebSiteAndAppPool $Name
+  
   } -ArgumentList 'SuperWebApp'
 
   Copy-DirectoryContent ".\SuperWebApp" -Destination $Settings.SuperWebAppPath -ClearDestination
 	
-	Invoke-CommandOnTargetServer {
-	  param($Settings)
+  Invoke-CommandOnTargetServer {
+    param($Settings)
 		
     Initialize-WebAppPool 'SuperWebApp' 'v4.0'
 				
-		Initialize-Website 'SuperWebApp' -AppPool 'SuperWebApp' -PhysicalPath $Settings.SuperWebAppPath 		
+    Initialize-Website 'SuperWebApp' -AppPool 'SuperWebApp' -PhysicalPath $Settings.SuperWebAppPath 		
 						
 			
     Set-AccessRights $Settings.SuperWebAppPath `
@@ -80,16 +84,59 @@ Role SuperWebApp {
       -Inheritance 'ContainerInherit' `
       -Propagation 'InheritOnly'
 
-			Start-WebSiteAndAppPool 'SuperWebApp'
-		 -ArgumentList $Settings							
-  }
+    Start-WebSiteAndAppPool 'SuperWebApp'	
+  } -ArgumentList $Settings							
 }
 
 Role HyperService {
   param($Settings)
   
+  Write-NiceMessageToLog
   
+  Remove-ServiceOnTarget 'HyperService'
+  
+  Copy-DirectoryContent ".\HyperService" -Destination $Settings.HyperServicePath -ClearDestination
+ 
+  New-ServiceOnTarget "$($Settings.HyperServicePath)\HyperService.exe"
+} -Rollback {
+  (Get-Log).Error("Something went wrong - will try to rollback...")
+}
+
+Helpers {
+  function Write-NiceMessageToLog {
+  	(Get-Log).Info("Hello from $($env:COMPUTERNAME)")
+  }
+
 }
 
 ```
+
+To deploy all Roles to QA environment simply invoke following command from powershell (as Administrator):
+`.\powerkick.ps1 -Environment QA`
+
+The above command will do the following:
+- Deploy SuperWebApp to 'web-farm-machine-one' and 'web-farm-machine-two' by:
+  - Stopping IIS application pool and Web Site called SuperWebApp
+  - Copying SuperWebApp contents to path specified in settings on remote machine
+  - Making sure that there is is a SuperWebApp app pool on iis with .net framework version set to 4
+  - Making sure that there is a SuperWebApp web site in iis with path and app pool properly set
+  - Giving required file system rights to a app pool process identity
+  - Starting iis application pool and web site called SuperWebApp
+- Deploy HyperService to 'service-machine-one' and 'service-machine-two' by:
+  - Stoping and removing any existing service called HyperService
+  - Copying HyperService directory contents to path specified in settings on remote machine
+  - Creating and starting new windows service called HyperService
+
+**powerkick** will deploy each role on each target server using the same script block passed in `Role $RoleName {}`
+For commands that require execution on remote machine there is a `Invoke-CommandOnTargetServer` function that will try to establish powershell session to that machine under the covers.
+A log file for each deployment run will be created next to `plan.ps1` file inside deployment-log directory.
+
+To verify what will happen during a deployment of SuperWebApp pass -WhatIf switch to powerkick:
+`.\powerkick.ps1 -Role SuperWebApp -Environment QA -WhatIf`
+No changes to target systems will be made.
+
+If you deploy several similar components you can remove duplication from your deployment script by defining helper functions inside `Helpers` (take a look at `Write-NiceMessageToLog` from sample).
+
+
+
 
