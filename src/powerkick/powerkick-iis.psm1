@@ -26,7 +26,7 @@ function Initialize-WebAppPool {
 			$log.Info("Setting .net version of $($_.Name) pool to $NetVersion")
 			$_.managedRuntimeVersion = $NetVersion
 			if($UserName -and $Password){
-				$log.Info("Changing $($_.Name) identity to SpecificUser")
+				$log.Info("Changing $($_.Name) app pool identity to $UserName")
 				$_.processModel.username = $UserName 
 				$_.processModel.password = $Password
 				$_.processModel.identityType = "SpecificUser"
