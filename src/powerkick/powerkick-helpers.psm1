@@ -105,8 +105,11 @@ function Invoke-CommandOnTargetServer {
     )
 	$log = (Get-Log)	
 	$targetServer = (Get-ContextServer)
+	$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
 	if((Test-IsLocal $targetServer)){
+		$log.Debug("Invoking local $logMessage")		
 		$Command.Invoke($ArgumentList)
+		$log.Debug("Done invoking local $logMessage")		
 	} else {	
 		$Params = @{
 			ArgumentList = $ArgumentList;
@@ -146,15 +149,15 @@ function Invoke-CommandOnTargetServer {
 				$log.Error(("Error occured while executing command {0}: {1}" -f $Params.Command, $_))				
 				$result.Exception = $_				
 			}
+			$log.Info("Leaving remote machine $env:COMPUTERNAME")
 			return $result
-		}
-		$logMessage = ("command on server {0}: {1} -ArgumentList {2}" -f $targetServer, $Command, [string]::Join(', ', $ArgumentList ))
-		$log.Debug("Invoking $logMessage")		
+		}		
+		$log.Debug("Invoking remote $logMessage")		
 		$remoteResult = Invoke-Command -ScriptBlock $wrappedCommand -ComputerName $targetServer -ArgumentList $Params		
 		
 		Add-RemoteLogToLocalSafely $remoteResult.LogFileName
 		
-		$log.Debug(("Done invoking  $logMessage"))		
+		$log.Debug(("Done invoking remote $logMessage"))		
 		Remove-FileOnTargetServer $remoteResult.LogFileName 
 		if($remoteResult.Exception){
 			throw $remoteResult.Exception
