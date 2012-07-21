@@ -116,7 +116,7 @@ function New-TopshelfServiceOnTarget {
 	
 	Invoke-CommandOnTargetServer {
 		param($BinPath)
-		& $BinPath install 
+		Exec { & $BinPath install } 
 	} -ArgumentList $BinPath
 	$log.Debug(("Done creating new Topshelf service {0}" -f $ServiceName))
 	if($StartAfterCreating){
